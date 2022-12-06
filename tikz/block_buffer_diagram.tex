@@ -1,0 +1,36 @@
+\documentclass{standalone}
+
+\usepackage{tikz,pgf}
+\usetikzlibrary{fit, bayesnet, arrows.meta, positioning, trees, decorations.pathreplacing,calligraphy, backgrounds}
+\begin{document}
+    \pgfdeclarelayer{background}%
+    \pgfdeclarelayer{background_lvl2}%
+    \pgfsetlayers{background_lvl2,background,main}%
+    \tikzstyle{component} = [rectangle, minimum width=1cm, minimum height=1cm, draw=black]%
+    \tikzstyle{arrow} = [-{Latex[length=2.5mm, width=1.5mm]},align=flush center, font=\scriptsize]%
+    
+    \begin{tikzpicture}
+        \node (dots_0) {$\dots$};
+        
+        \node (block_0) [component, right of=dots_0] {\footnotesize{$b_{w_0}$}};
+        \node (block_1) [component, right of=block_0, xshift=0.5cm] {\footnotesize{$b_{w_1}$}};
+        
+        \node (dots_1) [right of=block_1] {$\dots$};
+        
+        \node (block_2) [component, right of=dots_1] {\footnotesize{$b_{w_{d-1}}$}};
+        \node (block_3) [component, right of=block_2, xshift=0.5cm] {\footnotesize{$b_{w_d}$}};
+        \node (block_4) [component, right of=block_3, xshift=0.5cm] {\footnotesize{$b_{{w+1}_0}$}};
+        
+        \node (dots_2) [right of=block_4] {$\dots$};
+        
+        \draw [thick, decorate, decoration = {calligraphic brace,mirror}] (0.5,-1) --  (6.5,-1);
+        
+        \draw [thick, decorate, decoration = {calligraphic brace,mirror}] (7,-1) --  (8,-1);
+        
+        \node at (3.5,-1.35) {\footnotesize{buffer size $d$}};
+        
+        \node at (7.5,-1.35) {\footnotesize{block size $l$}};
+        
+    \end{tikzpicture}
+    
+\end{document}

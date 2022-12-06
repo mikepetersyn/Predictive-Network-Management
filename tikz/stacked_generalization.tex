@@ -1,0 +1,39 @@
+\documentclass{standalone}
+
+\usepackage{tikz,pgf, bm}
+\usetikzlibrary{fit, bayesnet, arrows.meta, positioning, trees, decorations.pathreplacing,calligraphy, backgrounds}
+\begin{document}
+    \pgfdeclarelayer{background}%
+    \pgfdeclarelayer{background_lvl2}%
+    \pgfsetlayers{background_lvl2,background,main}%
+    \tikzstyle{component} = [rectangle, minimum width=0.5cm, minimum height=0.5cm, draw=black]%
+    \tikzstyle{arrow} = [-{Latex[length=2.5mm, width=1.5mm]},align=flush center, font=\scriptsize]%
+    
+    \begin{tikzpicture}
+        \node (Flow) {Flow $\bm{x}$};
+        \node (C_2) [component, right of=Flow, xshift=1.5cm] {$C_2$};
+        \node (C_1) [component, above of=C_2] {$C_1$};
+        \node (C_dots) [below of=C_2, yshift=0.5cm] {\dots};
+        \node (C_k) [component, below of=C_dots, yshift=0.5cm] {$C_k$};
+        
+        \draw[arrow] (Flow.north east) -- (C_1.west);
+        \draw[arrow] (Flow.east) -- (C_2.west);
+        \draw[arrow] (Flow.south east) -- (C_k.west);
+        
+        \node (M) [component, ellipse, minimum width=1cm, right of=C_2, xshift=1.5cm] {$\bm{M}$};
+        
+        \draw[arrow] (C_1.east) -- node[anchor=south] {$C_1(\bm{x})$} (M.north west);
+        \draw[arrow] (C_2.east) -- node[anchor=south] {$C_2(\bm{x})$} (M.west);
+        \draw[arrow] (C_k.east) -- node[anchor=south] {$C_k(\bm{x})$} (M.south west);
+        
+        \node (Final) [right of=M, xshift=1.5cm] {$\bm{M}(C_i(\bm{x}))$};
+        \draw[arrow] (M.east) -- (Final.west);
+        
+        \node (Level 0) [below of=C_2, yshift=-1cm, align=center] {Level 0};
+        \node (Level 0) [below of=M, yshift=-1cm, align=center] {Level 1};
+        
+
+        
+    \end{tikzpicture}
+    
+\end{document}

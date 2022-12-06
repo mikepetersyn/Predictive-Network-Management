@@ -1,0 +1,91 @@
+\documentclass{standalone}
+
+\usepackage{tikz,pgf}
+\usetikzlibrary{fit, bayesnet, arrows.meta, positioning, trees, decorations.pathreplacing,calligraphy, backgrounds}
+\begin{document}
+    \pgfdeclarelayer{background}%
+    \pgfdeclarelayer{background_lvl2}%
+    \pgfsetlayers{background_lvl2,background,main}%
+    \tikzstyle{component} = [rectangle, minimum width=1.75cm, minimum height=0.5cm, align=flush center, draw=black]%
+    \tikzstyle{small_component} = [rectangle, minimum width=1cm, minimum height=0.25cm, align=flush center, draw=black]%
+    \tikzstyle{group} = [rectangle, dotted, minimum width=3cm, minimum height=1cm, align=flush center, draw=black, line width=0.2mm, inner sep=0.1cm]%
+    \tikzstyle{arrow} = [-{Latex[length=2.5mm, width=1.5mm]},align=flush center, font=\scriptsize]%
+    \begin{tikzpicture}
+    
+        % Flow Data Stream Server
+        
+        \node (Dataset) [component, rounded corners=3pt] {Dataset};
+
+        \node (Collector) [component, below of=Dataset, yshift=-0.75cm] {NetFlow \\ Collector} coordinate[below=0.5cm of Collector.south] (c);
+        
+        \node (Flow_Processor_s) [component, right of=Collector, xshift=3cm] {Flow \\ Processor};
+        \node (File_Streamer) [component, right of=Dataset, xshift=1cm] {File \\ Streamer};
+        
+        \node (n_Flow_Processors_s_0) [component, fill=white, right of=Flow_Processor_s, xshift=3.1cm, yshift=0.1cm] {$n$ Flow \\ Processors};
+        \node (n_Flow_Processors_s_1) [component, fill=white, right of=Flow_Processor_s, xshift=3.05cm, yshift=0.05cm] {$n$ Flow \\ Processors};
+        \node (n_Flow_Processors_s) [component, fill=white, right of=Flow_Processor_s, xshift=3cm] {$n$ Flow \\ Processors};
+        
+        \node (Connection_Handler) [component, right of=File_Streamer, xshift=3cm] {Connection \\ Handler};
+        
+        \node (Exporter) [group, fit=(Collector) (Flow_Processor_s) (n_Flow_Processors_s) (n_Flow_Processors_s_0) (n_Flow_Processors_s_1)] {};
+        
+        \draw[arrow] (Flow_Processor_s.north) |- +(0,0.35) node[anchor=north, xshift=0cm, yshift=0.4cm] {Compressed Flow Entries} -| (Dataset.south);
+        \draw[arrow] (Flow_Processor_s.north) |- +(0,0.35) node[anchor=north, xshift=2cm, yshift=0.4cm] {} -| (Connection_Handler.south);
+        \draw[arrow] (Collector) -- node {Block \\ Flow Records} (Flow_Processor_s);
+        \draw[densely dotted, line width=0.2mm] (Dataset) -- (File_Streamer);
+        \draw[arrow] (File_Streamer) -- node {Block \\ Flow Entries} (Connection_Handler);
+        \draw[arrow] ([yshift=0.1cm]Flow_Processor_s.east) -- node[anchor=south] {Flow Records} ([yshift=0.1cm]n_Flow_Processors_s.west);
+        \draw[arrow] ([yshift=-0.1cm]n_Flow_Processors_s.west) -- node[anchor=north] {Flow Records} ([yshift=-0.1cm]Flow_Processor_s.east);
+        
+        \draw[arrow] (c) -- node[anchor=north, yshift=-0.15cm] {Exported Flows} (Collector);
+        
+        
+        %\draw[arrow] (Flow_Processor_s.south) -| +(0,-1.3cm) node[anchor=south, xshift=1.5cm] {Block Flow \\ Entries} -- (Connection_Handler.west);
+        
+        
+        \node (Flow_Data_Stream_Server) [component, fit=(Collector) (Flow_Processor_s) (n_Flow_Processors_s) (n_Flow_Processors_s_0) (n_Flow_Processors_s_1) (Connection_Handler) (File_Streamer) (Exporter) (Dataset), inner sep=0.2cm, label={[xshift=3.55cm, yshift=-0.1cm]Flow Data Stream Server}] {};
+        
+    
+        % Flow Data Stream Clients
+        
+        \node (Stream_Handler) [component, right of=Connection_Handler, xshift=3.75cm] {Stream \\ Handler};
+        \node (Flow_Processor) [component, right of=Stream_Handler, xshift=3cm] {Flow \\ Processor};
+        
+        \node (m_Flow_Processors_0) [component, fill=white, right of=Flow_Processor, xshift=3.175cm, yshift=0.1cm] {$m$ Flow \\ Processors};
+        \node (m_Flow_Processors_1) [component, fill=white, right of=Flow_Processor, xshift=3.12cm, yshift=0.05cm] {$m$ Flow \\ Processors};
+        \node (m_Flow_Processors) [component, fill=white, right of=Flow_Processor, xshift=3.075cm] {$m$ Flow \\ Processors};
+        
+        \node (Window_Manager) [component, below of=Stream_Handler, yshift=-0.75cm] {Window \\ Manager};
+        
+        
+        \node (Online_Model) [, right of=Window_Manager, minimum width=1cm, xshift=3cm] {$k$ Windows};
+        
+        \begin{pgfonlayer}{background}
+        \node (Window_0) [component, fill=white, fit=(Online_Model), xshift=0.1cm, yshift=0.1cm] {$l$ Windows};
+        \node (Window_1) [component, fill=white, fit=(Online_Model) , xshift=0.05cm, yshift=0.05cm] {$l$ Windows};
+        \node (Window) [component, fill=white, fit=(Online_Model)] {};
+        \end{pgfonlayer}
+        
+        \node (Ensemble_Client) [component, right of=Window, xshift=3.5cm] {Ensemble \\ Client} coordinate[below=0.5cm of Ensemble_Client.south] (e);
+        
+
+        \draw[arrow] (Stream_Handler) -- node {Decompressed \\ Block} (Flow_Processor);
+        \draw[arrow] ([yshift=0.1cm]Flow_Processor.east) -- node[anchor=south] {Flows} ([yshift=0.1cm]m_Flow_Processors.west);
+        \draw[arrow] ([yshift=-0.1cm]m_Flow_Processors.west) -- node[anchor=north] {Dataset} ([yshift=-0.1cm]Flow_Processor.east) ;
+        \draw[arrow] (Flow_Processor.south) -| +(0,-0.25) node[anchor=north, xshift=-2cm, yshift=0.1cm] {Dataset} -| (Window_Manager.north);
+        \draw[arrow] (Window_Manager) -- node[anchor=south] {Dataset} (Window);
+        \draw[arrow] (Window) -- node {Class \\ Probabilities} (Ensemble_Client);
+        
+        \begin{pgfonlayer}{background_lvl2}
+        \node (Flow_Data_Stream_Client_0) [component, fill=white, fit=(Stream_Handler) (Flow_Processor) (m_Flow_Processors) (Ensemble_Client) (Window_Manager) (Window) (Window_0) (Window_1), xshift=0.1cm, yshift=0.1cm, inner sep=0.2cm] {};
+        \node (Flow_Data_Stream_Client_0) [component, fill=white, fit=(Stream_Handler) (Flow_Processor) (m_Flow_Processors) (Ensemble_Client) (Window_Manager) (Window) (Window_0) (Window_1), xshift=0.05cm, yshift=0.05cm, inner sep=0.2cm] {};
+        \node (Flow_Data_Stream_Client) [component, fill=white, fit=(Stream_Handler) (Flow_Processor) (m_Flow_Processors) (Ensemble_Client) (Window_Manager) (Window) (Window_0) (Window_1), label={[xshift=3.5cm]Flow Data Stream Clients}, inner sep=0.2cm] {};
+        \end{pgfonlayer}
+
+        \draw[arrow] (Connection_Handler) -- node[xshift=-0.25cm] {Compressed \\ Block} (Stream_Handler);
+        
+        \draw[arrow] (Ensemble_Client) -- node[anchor=north, yshift=-0.15cm] {Classification} (e); 
+        
+    \end{tikzpicture}
+
+\end{document}
